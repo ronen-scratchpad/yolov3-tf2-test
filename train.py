@@ -3,7 +3,7 @@ from absl.flags import FLAGS
 
 import tensorflow as tf
 import numpy as np
-import cv2
+# import cv2
 import time
 from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
@@ -24,8 +24,8 @@ flags.DEFINE_string('val_dataset', '', 'path to validation dataset')
 flags.DEFINE_boolean('tiny', False, 'yolov3 or yolov3-tiny')
 flags.DEFINE_string('weights', './checkpoints/yolov3.tf',
                     'path to weights file')
-flags.DEFINE_string('classes', './data/coco.names', 'path to classes file')
-flags.DEFINE_enum('mode', 'fit', ['fit', 'eager_fit', 'eager_tf'],
+flags.DEFINE_string('classes', '', 'path to classes file')
+flags.DEFINE_enum('mode', 'eager_tf', ['fit', 'eager_fit', 'eager_tf'],
                   'fit: model.fit, '
                   'eager_fit: model.fit(run_eagerly=True), '
                   'eager_tf: custom GradientTape')
@@ -109,7 +109,7 @@ def main(_argv):
     # Setup
     if FLAGS.multi_gpu:
         for physical_device in physical_devices:
-            tf.config.experimental.set_memory_growth(physical_device, True)
+            tf.config.experimental.set_memo_meshgridry_growth(physical_device, True)
 
         strategy = tf.distribute.MirroredStrategy()
         print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
@@ -127,6 +127,7 @@ def main(_argv):
     else:
         train_dataset = dataset.load_fake_dataset()
     train_dataset = train_dataset.shuffle(buffer_size=512)
+    train_dataset = train_dataset.repeat()
     train_dataset = train_dataset.batch(FLAGS.batch_size)
     train_dataset = train_dataset.map(lambda x, y: (
         dataset.transform_images(x, FLAGS.size),
@@ -150,7 +151,7 @@ def main(_argv):
         avg_loss = tf.keras.metrics.Mean('loss', dtype=tf.float32)
         avg_val_loss = tf.keras.metrics.Mean('val_loss', dtype=tf.float32)
 
-        for epoch in range(1, FLAGS.epochs + 1):
+        for epoch in range(1, FLAGS.epochs + 1+1000):
             for batch, (images, labels) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     outputs = model(images, training=True)
