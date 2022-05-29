@@ -1,4 +1,6 @@
 from absl import logging
+from matplotlib import pyplot as plt
+
 import numpy as np
 import tensorflow as tf
 # import cv2
@@ -134,8 +136,6 @@ def freeze_all(model, frozen=True):
         for l in model.layers:
             freeze_all(l, frozen)
 
-
-from matplotlib import pyplot as plt
 
 def render_bboxes(image, bboxes):
     bboxes = tf.cast(bboxes, tf.float32)[tf.newaxis, :,:]

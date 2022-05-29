@@ -1,7 +1,7 @@
 import tensorflow as tf
 from absl.flags import FLAGS
 
-@tf.function
+# @tf.function
 def transform_targets_for_output(y_true, grid_size, anchor_idxs):
     # y_true: (N, boxes, (x1, y1, x2, y2, class, best_anchor))
     N = tf.shape(y_true)[0]
@@ -31,7 +31,7 @@ def transform_targets_for_output(y_true, grid_size, anchor_idxs):
 
                 # grid[y][x][anchor] = (tx, ty, bw, bh, obj, class)
                 indexes = indexes.write(
-                    idx, [i, grid_xy[1], grid_xy[0], anchor_idx[0][0]])
+                    idx, [i, grid_xy[0], grid_xy[1], anchor_idx[0][0]])
                 updates = updates.write(
                     idx, [box[0], box[1], box[2], box[3], 1, y_true[i][j][4]])
                 idx += 1
@@ -91,7 +91,7 @@ IMAGE_FEATURE_MAP = {
     'image/object/bbox/xmax': tf.io.VarLenFeature(tf.float32),
     'image/object/bbox/ymax': tf.io.VarLenFeature(tf.float32),
     'image/object/class/text': tf.io.VarLenFeature(tf.string),
-    # 'image/object/class/label': tf.io.VarLenFeature(tf.int64),
+    'image/object/class/label': tf.io.VarLenFeature(tf.string),
     # 'image/object/difficult': tf.io.VarLenFeature(tf.int64),
     # 'image/object/truncated': tf.io.VarLenFeature(tf.int64),
     # 'image/object/view': tf.io.VarLenFeature(tf.string),
@@ -99,12 +99,12 @@ IMAGE_FEATURE_MAP = {
 
 
 def parse_tfrecord(tfrecord, class_table, size):
-    x = tf.io.parse_single_example(tfrecord, IMAGE_FEATURE_MAP)
+    x = tf.io.parse_single_example(tfrecord, feature_description)
     x_train = tf.image.decode_jpeg(x['image/encoded'], channels=3)
     x_train = tf.image.resize(x_train, (size, size))
 
     class_text = tf.sparse.to_dense(
-        x['image/object/class/text'], default_value='')
+        x['image/object/class/label'], default_value='')
     labels = tf.cast(class_table.lookup(class_text), tf.float32)
     y_train = tf.stack([tf.sparse.to_dense(x['image/object/bbox/xmin']),
                         tf.sparse.to_dense(x['image/object/bbox/ymin']),
@@ -137,7 +137,7 @@ def load_fake_dataset():
         [0.18494931, 0.03049111, 0.9435849,  0.96302897, 0],
         [0.01586703, 0.35938117, 0.17582396, 0.6069674, 56],
         [0.09158827, 0.48252046, 0.26967454, 0.6403017, 67]
-    ] + [[0, 0, 0, 0, 0]] * 5
+    ]# + [[0, 0, 0, 0, 0]] * 5
     y_train = tf.convert_to_tensor(labels, tf.float32)
     y_train = tf.expand_dims(y_train, axis=0)
 
