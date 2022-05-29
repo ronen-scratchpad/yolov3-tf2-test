@@ -4,7 +4,7 @@ import time
 # import cv2
 import numpy as np
 import tensorflow as tf
-from yolov3_tf2.models import (
+from yolov3_tf2.models2 import (
     YoloV3, YoloV3Tiny
 )
 from yolov3_tf2.dataset import transform_images, load_tfrecord_dataset
