@@ -1,7 +1,7 @@
 from absl import logging
 import numpy as np
 import tensorflow as tf
-import cv2
+# import cv2
 
 YOLOV3_LAYER_LIST = [
     'yolo_darknet',
@@ -133,3 +133,22 @@ def freeze_all(model, frozen=True):
     if isinstance(model, tf.keras.Model):
         for l in model.layers:
             freeze_all(l, frozen)
+
+
+from matplotlib import pyplot as plt
+
+def render_bboxes(image, bboxes):
+    bboxes = tf.cast(bboxes, tf.float32)[tf.newaxis, :,:]
+    # bboxes, _ = tf.split(bboxes, [4, 1], axis=-1 )
+    indices = [1, 0, 3, 2]
+    bboxes = tf.gather(bboxes, indices, axis=-1)
+    colors = [[1, 255, 0]]
+    # expand dims only if needed:
+    image = tf.squeeze(image)[tf.newaxis, ...]
+    bboxes = tf.squeeze(bboxes)[tf.newaxis, ...]
+
+    image = tf.image.draw_bounding_boxes(
+        image, bboxes, colors, name=None
+    )
+    plt.imshow(image[0])
+    plt.show()

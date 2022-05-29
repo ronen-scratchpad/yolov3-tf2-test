@@ -8,7 +8,8 @@ from yolov3_tf2.models2 import (
     YoloV3, YoloV3Tiny
 )
 from yolov3_tf2.dataset import transform_images, load_tfrecord_dataset
-from yolov3_tf2.utils import draw_outputs
+from yolov3_tf2.utils import draw_outputs, render_bboxes
+
 
 # flags.DEFINE_string('classes', './data/coco.names', 'path to classes file')
 # flags.DEFINE_string('weights', './checkpoints/yolov3.tf',
@@ -22,11 +23,12 @@ from yolov3_tf2.utils import draw_outputs
 
 class FLAGS:
     classes= './data/coco.names'
-    weights=  './checkpoints/yolov3.tf'
+    weights=  'checkpoints/yolov3_train_2.tf'
+    weights=  'checkpoints/yolov3_train_2.tf'
     tiny=  False
     size=  416
     image = './data/girl.png'
-    tfrecord =  'tfrecord instead of image'
+    tfrecord =  None
     output = './output.jpg', 'path to output image'
     num_classes = 80
 
@@ -41,10 +43,10 @@ def main():
         yolo = YoloV3(classes=FLAGS.num_classes)
 
     yolo.load_weights(FLAGS.weights).expect_partial()
-    logging.info('weights loaded')
+    print('weights loaded')
 
     class_names = [c.strip() for c in open(FLAGS.classes).readlines()]
-    logging.info('classes loaded')
+    print('classes loaded')
 
     if FLAGS.tfrecord:
         dataset = load_tfrecord_dataset(
@@ -61,18 +63,21 @@ def main():
     t1 = time.time()
     boxes, scores, classes, nums = yolo(img)
     t2 = time.time()
-    logging.info('time: {}'.format(t2 - t1))
+    print('time: {}'.format(t2 - t1))
 
-    logging.info('detections:')
+    print('detections:')
+
+    render_bboxes(img, boxes)
+
     for i in range(nums[0]):
-        logging.info('\t{}, {}, {}'.format(class_names[int(classes[0][i])],
+        print('\t{}, {}, {}'.format(class_names[int(classes[0][i])],
                                            np.array(scores[0][i]),
                                            np.array(boxes[0][i])))
 
     # img = cv2.cvtColor(img_raw.numpy(), cv2.COLOR_RGB2BGR)
     # img = draw_outputs(img, (boxes, scores, classes, nums), class_names)
     # cv2.imwrite(FLAGS.output, img)
-    logging.info('output saved to: {}'.format(FLAGS.output))
+    print('output saved to: {}'.format(FLAGS.output))
 
 
 main()
