@@ -22,6 +22,9 @@ from tensorflow.keras.losses import (
 )
 from .utils import broadcast_iou
 
+
+from mymodels import darknet53, get_grids_common_block, get_grid_output
+
 # flags.DEFINE_integer('yolo_max_boxes', 100,
 #                      'maximum number of boxes per image')
 # flags.DEFINE_float('yolo_iou_threshold', 0.5, 'iou threshold')
@@ -196,10 +199,7 @@ def yolo_nms(outputs, anchors, masks, classes):
     for o in outputs:
         b.append(tf.reshape(o[0], (tf.shape(o[0])[0], -1, tf.shape(o[0])[-1])))
         c.append(tf.reshape(o[1], (tf.shape(o[1])[0], -1, tf.shape(o[1])[-1])))
-        t.append(tf.reshape(
-            o[2], (tf.shape(o[2])[0], -1, tf.shape(o[2])[-1])
-        )
-        )
+        t.append(tf.reshape(o[2], (tf.shape(o[2])[0], -1, tf.shape(o[2])[-1])))
 
     bbox = tf.concat(b, axis=1)
     confidence = tf.concat(c, axis=1)
@@ -319,9 +319,6 @@ def YoloLoss(anchors, classes=80, ignore_thresh=0.5):
         grid_size = tf.shape(y_true)[1]
         grid = tf.meshgrid(tf.range(grid_size), tf.range(grid_size))
         grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)
-        ttxy = true_xy * tf.cast(grid_size, tf.float32)
-        aa1 = ttxy[0,7,6,:]
-        aa2 = ttxy[0, 6, 7,:]
         true_xy = true_xy * tf.cast(grid_size, tf.float32) - \
             tf.cast(grid, tf.float32)
         true_wh = tf.math.log(true_wh / anchors)
