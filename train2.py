@@ -24,6 +24,10 @@ from yolov3_tf2.models2 import (
     yolo_anchors, yolo_anchor_masks,
     yolo_tiny_anchors, yolo_tiny_anchor_masks
 )
+
+from mymodels import yolov3_model
+
+
 from yolov3_tf2.utils import freeze_all
 import yolov3_tf2.dataset as dataset
 
@@ -36,7 +40,7 @@ class FLAGS:
     mode = 'eager_tf'
     transfer='none'
     size = 416
-    epochs  =2
+    epochs  = 2000
     batch_size =8
     learning_rate = 1e-3
     num_classes = 80
@@ -55,6 +59,9 @@ def setup_model():
         model = YoloV3(FLAGS.size, training=True, classes=FLAGS.num_classes)
         anchors = yolo_anchors
         anchor_masks = yolo_anchor_masks
+        anchors_table = None
+        # model = yolov3_model(anchors_table, FLAGS.size, nclasses=FLAGS.num_classes)
+
 
     # Configure the model for transfer learning
     if FLAGS.transfer == 'none':
@@ -126,7 +133,7 @@ def main():
     else:
         train_dataset = dataset.load_fake_dataset()
     train_dataset = train_dataset.shuffle(buffer_size=512)
-    train_dataset = train_dataset.repeat(1000)
+    # train_dataset = train_dataset.repeat(100)
     train_dataset = train_dataset.batch(FLAGS.batch_size)
 
     # train_dataset1 = train_dataset.map(lambda x, y: tf.numpy_function(
@@ -216,8 +223,9 @@ def main():
 
             avg_loss.reset_states()
             avg_val_loss.reset_states()
-            model.save_weights(
-                'checkpoints/yolov3_train_{}.tf'.format(epoch))
+            if epoch % 50 == 0:
+                model.save_weights(
+                    'checkpoints/yolov3_train_{}.tf'.format(epoch))
     else:
 
         callbacks = [
